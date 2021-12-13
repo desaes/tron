@@ -1,5 +1,16 @@
 # Local .terraform directories
 **/.terraform/*
+**/.infracost/*
+
+**ssh-key*
+**mykey*
+**tfstate*
+**tfvars*
+**.infracost*
+**.terraform*
+**svg*
+**plan*
+!**.terraform.lock.hcl
 
 # .tfstate files
 *.tfstate
