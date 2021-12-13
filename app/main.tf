@@ -153,10 +153,15 @@ resource "aws_launch_configuration" "kroton-launchconfig" {
   security_groups             = var.env == "prod" ? [data.terraform_remote_state.security.outputs.sg_allow_prod_ssh, data.terraform_remote_state.security.outputs.sg_allow_prod_http, data.terraform_remote_state.security.outputs.sg_allow_prod_https] : [data.terraform_remote_state.security.outputs.sg_allow_dev_ssh, data.terraform_remote_state.security.outputs.sg_allow_dev_http, data.terraform_remote_state.security.outputs.sg_allow_dev_https]
   associate_public_ip_address = true
   user_data                   = data.template_file.init.rendered
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 resource "aws_autoscaling_group" "kroton-autoscaling" {
-  name                      = "kroton-autoscaling"
+  # Name explicitly depend on the launch configuration's name so each time 
+  # it's replaced, this ASG is also replaced
+  name                      = "${var.env}-${aws_launch_configuration.kroton-launchconfig.name}"
   vpc_zone_identifier       = var.env == "prod" ? [data.terraform_remote_state.vpc.outputs.public_subnet_prod_ids[0]] : [data.terraform_remote_state.vpc.outputs.public_subnet_dev_ids[0]]
   launch_configuration      = aws_launch_configuration.kroton-launchconfig.name
   min_size                  = 1
@@ -165,6 +170,16 @@ resource "aws_autoscaling_group" "kroton-autoscaling" {
   health_check_type         = "ELB"
   load_balancers            = [aws_elb.kroton-elb.name]
   force_delete              = true
+
+  # Wait for at least this many instances to pass health checks before
+  # considering the ASG deployment complete
+  min_elb_capacity = var.min_size
+
+  # When replacing this ASG, create the replacement first, and only delete the
+  # original after
+  lifecycle {
+    create_before_destroy = true
+  }
 
   tag {
     key                 = "Terraform"
