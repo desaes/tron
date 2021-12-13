@@ -9,7 +9,7 @@ sudo systemctl enable nginx
 sudo systemctl start nginx
 sudo systemctl enable filebeat
 sudo update-rc.d filebeat defaults 95 10
-sudo filebeat modules enable nginx
+sudo filebeat modules enable system nginx
 sudo cp /var/www/html/index.nginx-debian.html /var/tmp/index.nginx-debian.html
 sudo cat <<EOF > /var/www/html/index.nginx-debian.html
 <!DOCTYPE html>
@@ -46,7 +46,7 @@ sudo chmod 1777 /export/logs
 
 cp /etc/filebeat/modules.d/nginx.yml /etc/filebeat/modules.d/nginx.yml.orig
 sed -i '/access/a\ \ \ \ var.paths: ["/var/log/nginx/access.log*"]' /etc/filebeat/modules.d/nginx.yml
-mkdir -p /export/logs/filebeat-$HOSTNAME
+[ ! -d /export/logs/filebeat-$HOSTNAME]; mkdir -p /export/logs/filebeat-$HOSTNAME
 cp /etc/filebeat/filebeat.yml /etc/filebeat/filebeat.yml.orig
 sed -i 's/^output.elasticsearch:/#output.elasticsearch/' /etc/filebeat/filebeat.yml
 sed -i 's/hosts: \[\"localhost\:9200\"\]/#hosts: ["localhost:9200"]/' /etc/filebeat/filebeat.yml
