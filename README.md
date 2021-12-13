@@ -1,9 +1,11 @@
 # tron
 
-Execution order
-global/s3
-global/iam
-vpc
-security
-storage
-app
+## Execution order
+
+- global
+  - s3
+  - iam
+- vpc
+- security
+- storage
+- app
